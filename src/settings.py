@@ -1,13 +1,37 @@
 import json
 
-def save_settings(settings):
-    with open('settings.json', 'w') as f:
-        json.dump(settings, f)
+class SettingsManager:
+    def __init__(self, filename='settings.json'):
+        self.filename = filename
+        self.settings = self.load_settings()
 
-def load_settings():
-    try:
-        with open('settings.json', 'r') as f:
-            settings = json.load(f)
-            return settings
-    except (FileNotFoundError, json.JSONDecodeError):
-        return {'device_name': 'Default Device Name', 'api_key': '', 'volume_percentage': '100'}
+    def save_settings(self):
+        with open(self.filename, 'w') as f:
+            json.dump(self.settings, f)
+
+    def load_settings(self):
+        try:
+            with open(self.filename, 'r') as f:
+                settings = json.load(f)
+                return settings
+        except (FileNotFoundError, json.JSONDecodeError):
+            return {
+                'device_name': 'Default Device Name',
+                'api_key': '',
+                'volume_percentage': '100'
+            }
+
+    def update(self, new_settings):
+        self.settings.update(new_settings)
+        self.save_settings()
+
+    def update_setting(self, key, value):
+        print("[settings]: update " + key + " = " + value)
+        self.settings[key] = value
+        self.save_settings()
+
+    def get(self, key):
+        return self.settings[key]
+
+settings_manager = SettingsManager()
+print("[settings]: loaded settings = " +  json.dumps(settings_manager.settings))
