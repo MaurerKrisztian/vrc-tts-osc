@@ -3,6 +3,7 @@ from tkinter import messagebox, scrolledtext, ttk
 from audio_utils import list_audio_devices
 from tts import openai_tts, elevenlabs_tts, replay, get_elevenlabs_voices
 from settings import settings_manager
+from vrc import typing
 
 def setup_gui(root):
     settings = settings_manager.load_settings()
@@ -73,6 +74,7 @@ def setup_gui(root):
     tts_text_label = tk.Label(root, text="Text to Synthesize:")
     tts_text_label.pack()
     tts_text = scrolledtext.ScrolledText(root, height=5)
+    tts_text.bind("<KeyRelease>", check_textbox_content)
     tts_text.pack()
 
     # Button to generate and play TTS
@@ -86,6 +88,15 @@ def setup_gui(root):
     # Save Settings Button
     save_settings_button = tk.Button(root, text="Save Settings", command=lambda: settings_manager.save_settings())
     save_settings_button.pack()
+
+
+def check_textbox_content(event):
+    widget = event.widget  # Access the widget that triggered the event
+    content = widget.get("1.0", tk.END).strip()  # Get text box content, stripping leading and trailing whitespaces
+    if content:  # If the text box is not empty
+        typing(True)
+    else:
+        typing(False)
 
 def on_generate_tts_click(text, service):
     if not text:
