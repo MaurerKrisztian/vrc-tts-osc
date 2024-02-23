@@ -26,11 +26,12 @@ class SettingsManager:
         self.save_settings()
 
     def update_setting(self, key, value):
-        print("[settings]: update " + key + " = " + value)
+        print("[settings]: update " + key + " = " + json.dumps(value))
         self.settings[key] = value
         self.save_settings()
 
     def get(self, key):
+        # print("GET: " + key + " = " + json.dumps(self.settings[key]))
         return self.settings[key]
 
 settings_manager = SettingsManager()

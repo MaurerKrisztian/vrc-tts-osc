@@ -3,13 +3,10 @@ from openai import OpenAI
 from vrc import send_text_to_vrchat, typing
 from settings import settings_manager
 
-def openai_tts(text, api_key):
-    if not text or not api_key:
-        return  # TODO: Add error handling or UI feedback here
-
+def openai_tts(text):
     typing(True)
     print("[tts]: try to generate speach: " + text)
-    client = OpenAI(api_key=api_key)
+    client = OpenAI(api_key=settings_manager.get("openai_api_key"))
     response = client.audio.speech.create(
         model="tts-1",
         input=text,
@@ -34,14 +31,14 @@ def replay():
 from elevenlabs.client import ElevenLabs
 from elevenlabs import generate, voices
 
-def elevenlabs_tts(text, api_key):
+def elevenlabs_tts(text):
     print("[elevenlabs]: play generated speach ->  " + text)
     typing(True)
     audio = generate(
         text=text,
         voice= settings_manager.get("selected_elevenlabs_voice") or "Rachel",
         model="eleven_multilingual_v2",
-        api_key=api_key
+        api_key=settings_manager.get('elevenlabs_api_key')
         )
 
 
@@ -56,3 +53,11 @@ def get_elevenlabs_voices():
     return [voice.name for voice in voices()]
 
 print(get_elevenlabs_voices())
+
+
+def generate_tts_and_play(text):
+    if settings_manager.get("tts_service") == "elevenlab":
+        return elevenlabs_tts(text)
+    elif settings_manager.get("tts_service") == "openai":
+        return openai_tts(text)
+    

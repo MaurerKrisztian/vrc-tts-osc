@@ -12,9 +12,12 @@ def adjust_volume(samples, volume_percentage):
     volume_multiplier = volume_percentage / 100
     return np.int16(samples * volume_multiplier)
 
+def get_device_by_name(device_name):
+    return [d['name'] for d in sd.query_devices()].index(device_name)
+
 def play_mp3_through_device(file_path, device_name, volume_percentage):
     def playback():
-        device_id = [d['name'] for d in sd.query_devices()].index(device_name)
+        device_id = get_device_by_name(device_name)
         audio = AudioSegment.from_file(file_path, format="mp3")
         frame_rate = audio.frame_rate
         audio = audio.set_channels(2)

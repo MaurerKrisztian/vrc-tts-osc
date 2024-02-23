@@ -4,90 +4,114 @@ from audio_utils import list_audio_devices
 from tts import openai_tts, elevenlabs_tts, replay, get_elevenlabs_voices
 from settings import settings_manager
 from vrc import typing
+from stt import listen_and_transcribe
+import asyncio
+import threading
+import json
+
+threading.Thread(target=listen_and_transcribe).start()
 
 def setup_gui(root):
-    settings = settings_manager.load_settings()
+    # threading.Thread(target=listen_and_transcribe).start()
 
-    device_var = tk.StringVar(value=settings.get('device_name', 'Default Device Name'))
-    volume_var = tk.StringVar(value=settings.get('volume_percentage', '100'))
-    openai_key_var = tk.StringVar(value=settings.get('openai_api_key', ''))
-    elevenlabs_key_var = tk.StringVar(value=settings.get('elevenlabs_api_key', ''))
+    # Main padding for widgets and frames
+    padding = {'padx': 10, 'pady': 5}
+    
 
-    service_var = tk.StringVar(value=settings.get('tts_service', 'openai'))  # Default to 'openai'
+    print("sssssssssssssss" + settings_manager.get('device_name') + "  input: " + settings_manager.get('device_input_name'))
+    # Group 1: Device Settings
+    device_frame = ttk.LabelFrame(root, text="Device Settings")
+    device_frame.pack(fill='x', expand=True, **padding)
 
-    # Device selection
-    device_label = tk.Label(root, text="Select Audio Device:")
-    device_label.pack()
+    device_var = tk.StringVar(value=settings_manager.get('device_name'))
+    device_var2 = tk.StringVar(value=settings_manager.get('device_input_name'))
+    volume_var = tk.StringVar(value=settings_manager.get('volume_percentage'))
+
+    # Audio Output Device Selection
+    ttk.Label(device_frame, text="Select Audio Output Device:").pack(**padding)
     device_options = list_audio_devices()
-    device_menu = tk.OptionMenu(root, device_var, *device_options, command=lambda value: settings_manager.update_setting('device_name', value))
-    device_menu.pack()
+    print("sssssssssssssss" + settings_manager.get('device_name') + "  input: ")
+    tk.OptionMenu(device_frame, device_var, *device_options, command=lambda value: settings_manager.update_setting('device_name', value)).pack(fill='x', **padding)
 
-    # Volume control
-    volume_label = tk.Label(root, text="Volume (%):")
-    volume_label.pack()
-    volume_entry = tk.Entry(root, textvariable=volume_var)
-    volume_entry.bind("<FocusOut>", lambda event: settings_manager.update_setting('volume_percentage', volume_var.get()))
-    volume_entry.pack()
+    # Audio Input Device Selection
+    ttk.Label(device_frame, text="Select Audio Input Device:").pack(**padding)
+    tk.OptionMenu(device_frame, device_var2, *device_options, command=lambda value: settings_manager.update_setting('device_input_name', value)).pack(fill='x', **padding)
 
-    # OpenAI API Key input
-    openai_key_label = tk.Label(root, text="OpenAI API Key:")
-    openai_key_label.pack()
-    openai_key_entry = tk.Entry(root, textvariable=openai_key_var)
-    openai_key_entry.bind("<FocusOut>", lambda event: settings_manager.update_setting('openai_api_key', openai_key_var.get()))
-    openai_key_entry.pack()
+    # Volume Control
+    ttk.Label(device_frame, text="Volume (%):").pack(**padding)
+    ttk.Entry(device_frame, textvariable=volume_var, width=20).pack(fill='x', **padding)
+    volume_var.trace("w", lambda name, index, mode, sv=volume_var: settings_manager.update_setting('volume_percentage', volume_var.get()))
 
-    # Voice selection dropdown for openai
-    openai_voice_label = tk.Label(root, text="Select Voice for openai:")
-    openai_voice_label.pack()
-    selected_openai_voice_var = tk.StringVar(value=settings.get('selected_elevenlabs_voice_var', ''))
-    voice_dropdown = ttk.Combobox(root, textvariable=selected_openai_voice_var, values=["alloy", "echo", "fable", "onyx", "nova","shimmer"])
+    # Group 2: OpenAI Settings
+    openai_frame = ttk.LabelFrame(root, text="OpenAI Settings")
+    openai_frame.pack(fill='x', expand=True, **padding)
 
-    # Here we bind the selection event to automatically update the setting
-    voice_dropdown.bind("<<ComboboxSelected>>", lambda event: settings_manager.update_setting('selected_openai_voice', selected_openai_voice_var.get())) 
-    voice_dropdown.pack()
+    openai_key_var = tk.StringVar(value=settings_manager.get('openai_api_key'))
+    selected_openai_voice_var = tk.StringVar(value=settings_manager.get('selected_openai_voice'))
 
-    # ElevenLabs API Key input
-    elevenlabs_key_label = tk.Label(root, text="ElevenLabs API Key:")
-    elevenlabs_key_label.pack()
-    elevenlabs_key_entry = tk.Entry(root, textvariable=elevenlabs_key_var)
-    elevenlabs_key_entry.bind("<FocusOut>", lambda event: settings_manager.update_setting('elevenlabs_api_key', elevenlabs_key_var.get()))
-    elevenlabs_key_entry.pack()
+    # OpenAI API Key Input
+    ttk.Label(openai_frame, text="OpenAI API Key:").pack(**padding)
+    openai_key_entry = ttk.Entry(openai_frame, textvariable=openai_key_var, width=50)
+    openai_key_entry.pack(fill='x', **padding)
+    openai_key_var.trace("w", lambda name, index, mode, sv=openai_key_var: settings_manager.update_setting('openai_api_key', openai_key_var.get()))
 
+    # OpenAI Voice Selection
+    ttk.Label(openai_frame, text="Select Voice for OpenAI:").pack(**padding)
+    voice_dropdown = ttk.Combobox(openai_frame, textvariable=selected_openai_voice_var, values=["alloy", "echo", "fable", "onyx", "nova", "shimmer"], state="readonly")
+    voice_dropdown.pack(fill='x', **padding)
+    selected_openai_voice_var.trace("w", lambda name, index, mode, sv=selected_openai_voice_var: settings_manager.update_setting('selected_openai_voice', selected_openai_voice_var.get()))
 
-   # Voice selection dropdown for ElevenLabs
-    voice_label = tk.Label(root, text="Select Voice for ElevenLabs:")
-    voice_label.pack()
-    selected_elevenlabs_voice_var = tk.StringVar(value=settings.get('selected_elevenlabs_voice_var', ''))
-    voice_dropdown = ttk.Combobox(root, textvariable=selected_elevenlabs_voice_var, values=get_elevenlabs_voices())
+    # Group 3: ElevenLabs Settings
+    elevenlabs_frame = ttk.LabelFrame(root, text="ElevenLabs Settings")
+    elevenlabs_frame.pack(fill='x', expand=True, **padding)
 
-    # Here we bind the selection event to automatically update the setting
-    voice_dropdown.bind("<<ComboboxSelected>>", lambda event: settings_manager.update_setting('selected_elevenlabs_voice', selected_elevenlabs_voice_var.get())) 
-    voice_dropdown.pack()
+    elevenlabs_key_var = tk.StringVar(value=settings_manager.get('elevenlabs_api_key'))
+    selected_elevenlabs_voice_var = tk.StringVar(value=settings_manager.get('selected_elevenlabs_voice'))
 
+    # ElevenLabs API Key Input
+    ttk.Label(elevenlabs_frame, text="ElevenLabs API Key:").pack(**padding)
+    elevenlabs_key_entry = ttk.Entry(elevenlabs_frame, textvariable=elevenlabs_key_var, width=50)
+    elevenlabs_key_entry.pack(fill='x', **padding)
+    elevenlabs_key_var.trace("w", lambda name, index, mode, sv=elevenlabs_key_var: settings_manager.update_setting('elevenlabs_api_key', elevenlabs_key_var.get()))
+
+    # ElevenLabs Voice Selection
+    ttk.Label(elevenlabs_frame, text="Select Voice for ElevenLabs:").pack(**padding)
+    elevenlabs_voice_dropdown = ttk.Combobox(elevenlabs_frame, textvariable=selected_elevenlabs_voice_var, values=get_elevenlabs_voices(), state="readonly")
+    elevenlabs_voice_dropdown.pack(fill='x', **padding)
+    selected_elevenlabs_voice_var.trace("w", lambda name, index, mode, sv=selected_elevenlabs_voice_var: settings_manager.update_setting('selected_elevenlabs_voice', selected_elevenlabs_voice_var.get()))
+
+    # Miscellaneous Settings
     # TTS Service Selection
-    service_label = tk.Label(root, text="Select TTS Service:")
-    service_label.pack()
-    service_combo = ttk.Combobox(root, textvariable=service_var, values=['openai', 'elevenlabs'])
-    service_combo.pack()
+    service_var = tk.StringVar(value=settings_manager.get('tts_service'))
+    service_label = ttk.Label(root, text="Select TTS Service:")
+    service_label.pack(**padding)
+    service_combo = ttk.Combobox(root, textvariable=service_var, values=['openai', 'elevenlabs'], state="readonly")
+    service_combo.pack(fill='x', **padding)
+    service_var.trace("w", lambda name, index, mode, sv=service_var: settings_manager.update_setting('tts_service', service_var.get()))
 
-    # TTS Text input
-    tts_text_label = tk.Label(root, text="Text to Synthesize:")
-    tts_text_label.pack()
+
+    # AI Enable Switch
+    ai_enable_var = tk.BooleanVar(value=settings_manager.get('ai_enabled'))  # Default to False if not set
+    ai_enable_label = ttk.Label(root, text="Enable AI:")
+    ai_enable_label.pack(**padding)
+    ai_enable_checkbutton = ttk.Checkbutton(root, text="AI Enabled", variable=ai_enable_var, command=lambda: settings_manager.update_setting('ai_enabled', ai_enable_var.get()))
+    ai_enable_checkbutton.pack(**padding)
+
+
+    # TTS Text Input
+    tts_text_label = ttk.Label(root, text="Text to Synthesize:")
+    tts_text_label.pack(**padding)
     tts_text = scrolledtext.ScrolledText(root, height=5)
-    tts_text.bind("<KeyRelease>", check_textbox_content)
-    tts_text.pack()
+    tts_text.pack(fill='both', expand=True, **padding)
+    # Assuming check_textbox_content is defined elsewhere to handle content check
 
-    # Button to generate and play TTS
-    generate_tts_button = tk.Button(root, text="Generate and Play TTS", command=lambda: on_generate_tts_click(tts_text.get("1.0", tk.END).strip(), service_var.get()))
-    generate_tts_button.pack()
+    # Generate and Play TTS Button
+    generate_tts_button = ttk.Button(root, text="Generate and Play TTS", command=lambda: on_generate_tts_click(tts_text.get("1.0", tk.END).strip(), service_var.get()))
+    generate_tts_button.pack(fill='x', **padding)
 
-    # Button to replay last TTS
-    replay_button = tk.Button(root, text="Replay", command=lambda: replay())
-    replay_button.pack()
-
-    # Save Settings Button
-    save_settings_button = tk.Button(root, text="Save Settings", command=lambda: settings_manager.save_settings())
-    save_settings_button.pack()
+    # Replay Last TTS Button
+    replay_button = ttk.Button(root, text="Replay", command=replay)
+    replay_button.pack(fill='x', **padding)
 
 
 def check_textbox_content(event):
@@ -104,8 +128,8 @@ def on_generate_tts_click(text, service):
         return
 
     if service == 'openai' and settings_manager.get('openai_api_key'):
-        openai_tts(text, settings_manager.get('openai_api_key'))
+        openai_tts(text)
     elif service == 'elevenlabs' and settings_manager.get('elevenlabs_api_key'):
-        elevenlabs_tts(text, settings_manager.get('elevenlabs_api_key'))
+        elevenlabs_tts(text)
     else:
         messagebox.showwarning("Warning", "API key for selected TTS service is missing.")
