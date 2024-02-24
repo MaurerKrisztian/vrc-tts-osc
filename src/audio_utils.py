@@ -2,7 +2,7 @@ import sounddevice as sd
 import numpy as np
 from pydub import AudioSegment
 import threading
-
+import time
 def list_audio_devices():
     devices = sd.query_devices()
     device_names = [device['name'] for device in devices]
@@ -31,4 +31,15 @@ def play_mp3_through_device(file_path, device_name, volume_percentage):
         sd.play(samples, samplerate=frame_rate, device=device_id, blocking=True)
 
     playback_thread = threading.Thread(target=playback)
+    print("start mp3")
     playback_thread.start()
+    print("started")
+    time.sleep(get_mp3_duration(file_path))
+    print("sleep finished")
+
+
+from mutagen.mp3 import MP3
+
+def get_mp3_duration(file_path):
+    audio = MP3(file_path)
+    return audio.info.length

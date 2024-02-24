@@ -30,9 +30,9 @@ class SettingsManager:
         self.settings[key] = value
         self.save_settings()
 
-    def get(self, key):
+    def get(self, key, default=''):
         # print("GET: " + key + " = " + json.dumps(self.settings[key]))
-        return self.settings[key]
+        return self.settings.get(key, default)
 
 settings_manager = SettingsManager()
 print("[settings]: loaded settings = " +  json.dumps(settings_manager.settings))

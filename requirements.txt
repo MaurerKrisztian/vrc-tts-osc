@@ -5,3 +5,4 @@ openai
 python-osc
 elevenlabs==0.3.0b0
 roastedbyai
+ttkthemes

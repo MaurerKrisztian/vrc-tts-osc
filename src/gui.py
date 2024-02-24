@@ -1,3 +1,4 @@
+
 import tkinter as tk
 from tkinter import messagebox, scrolledtext, ttk
 from audio_utils import list_audio_devices
@@ -8,17 +9,12 @@ from stt import listen_and_transcribe
 import asyncio
 import threading
 import json
+import multiprocessing
 
-threading.Thread(target=listen_and_transcribe).start()
-
+proc = False
 def setup_gui(root):
-    # threading.Thread(target=listen_and_transcribe).start()
-
-    # Main padding for widgets and frames
     padding = {'padx': 10, 'pady': 5}
     
-
-    print("sssssssssssssss" + settings_manager.get('device_name') + "  input: " + settings_manager.get('device_input_name'))
     # Group 1: Device Settings
     device_frame = ttk.LabelFrame(root, text="Device Settings")
     device_frame.pack(fill='x', expand=True, **padding)
@@ -30,7 +26,6 @@ def setup_gui(root):
     # Audio Output Device Selection
     ttk.Label(device_frame, text="Select Audio Output Device:").pack(**padding)
     device_options = list_audio_devices()
-    print("sssssssssssssss" + settings_manager.get('device_name') + "  input: ")
     tk.OptionMenu(device_frame, device_var, *device_options, command=lambda value: settings_manager.update_setting('device_name', value)).pack(fill='x', **padding)
 
     # Audio Input Device Selection
@@ -91,11 +86,25 @@ def setup_gui(root):
 
 
     # AI Enable Switch
-    ai_enable_var = tk.BooleanVar(value=settings_manager.get('ai_enabled'))  # Default to False if not set
+    ai_enable_var = tk.BooleanVar(value=False)  # Default to False if not set
     ai_enable_label = ttk.Label(root, text="Enable AI:")
     ai_enable_label.pack(**padding)
-    ai_enable_checkbutton = ttk.Checkbutton(root, text="AI Enabled", variable=ai_enable_var, command=lambda: settings_manager.update_setting('ai_enabled', ai_enable_var.get()))
+    ai_enable_checkbutton = ttk.Checkbutton(root, text="AI Enabled", variable=ai_enable_var, command=lambda: on_ai_enable_toggle())
     ai_enable_checkbutton.pack(**padding)
+
+    def on_ai_enable_toggle():
+        global proc
+        # This function gets called whenever the checkbox is toggled
+        new_value = ai_enable_var.get()  # Get the current value of the variable
+        if new_value:
+            print("start thread")
+            proc = multiprocessing.Process(target=listen_and_transcribe, args=())
+            proc.start()
+        else:
+            print("stop thread")
+            proc.terminate()
+        print(f"AI Enabled set to: {new_value}")  # Log the new value
+        settings_manager.update_setting('ai_enabled', new_value)  # Update the setting
 
 
     # TTS Text Input
