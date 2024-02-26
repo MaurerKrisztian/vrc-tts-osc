@@ -16,6 +16,9 @@ This project offers a text-to-speech application specifically designed for VRCha
 ## Setup Requirements
 Before using this application, you must have a virtual audio cable software, such as Voicemeeter, set up on your system. This is necessary to route the application's audio output through your microphone input, allowing the synthesized speech to be heard in VRChat as if you were speaking.
 
+**Note: If you just want to test it, you don't need to have a virtual audio cable software. Set both the input and output devices to the default system settings. This way, you won't hear it in the game, but you can still try out the text-to-speech and the AI with your microphone.**
+
+
 ### Steps:
 1. Install a virtual audio cable software, e.g., Voicemeeter.
 2. Configure the virtual audio device as your default microphone input in your system's sound settings.
