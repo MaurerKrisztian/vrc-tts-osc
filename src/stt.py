@@ -33,7 +33,7 @@ def listen_and_transcribe():
                 print(f"You said: {text}")
                 send_text_to_vrchat("[You said]: " + text)
                 response = get_roasted_msg(text)
-                print(response)
+                print("[AI response]: " + response)
                 generate_tts_and_play(response)
                 # time.sleep(time_to_speak(text))
             except sr.UnknownValueError:

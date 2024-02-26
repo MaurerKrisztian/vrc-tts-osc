@@ -6,3 +6,4 @@ projectenv/
 build/
 dist/
 ./test.py
+./main.spec

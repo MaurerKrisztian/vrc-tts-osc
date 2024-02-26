@@ -1,5 +1,5 @@
 import json
-
+from audio_utils import get_default_input_device_name, get_default_output_device_name
 class SettingsManager:
     def __init__(self, filename='settings.json'):
         self.filename = filename
@@ -16,7 +16,8 @@ class SettingsManager:
                 return settings
         except (FileNotFoundError, json.JSONDecodeError):
             return {
-                'device_name': 'Default Device Name',
+                'device_name': get_default_output_device_name(),
+                'device_input_name': get_default_input_device_name(),
                 'api_key': '',
                 'volume_percentage': '100'
             }
@@ -31,7 +32,6 @@ class SettingsManager:
         self.save_settings()
 
     def get(self, key, default=''):
-        # print("GET: " + key + " = " + json.dumps(self.settings[key]))
         return self.settings.get(key, default)
 
 settings_manager = SettingsManager()

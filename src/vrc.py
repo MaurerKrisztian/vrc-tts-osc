@@ -9,5 +9,6 @@ def send_text_to_vrchat(text):
 
 
 def typing(b):
+    print("[osc]: /chatbox/typing " + str(b))
     client.send_message("/chatbox/typing", [b])
 

@@ -5,7 +5,7 @@ from settings import settings_manager
 
 def openai_tts(text):
     typing(True)
-    print("[tts]: try to generate speach: " + text)
+    print("[tts]: try to generate speach... ")
     client = OpenAI(api_key=settings_manager.get("openai_api_key"))
     response = client.audio.speech.create(
         model="tts-1",
@@ -51,8 +51,6 @@ def elevenlabs_tts(text):
 
 def get_elevenlabs_voices():
     return [voice.name for voice in voices()]
-
-print(get_elevenlabs_voices())
 
 
 def generate_tts_and_play(text):
